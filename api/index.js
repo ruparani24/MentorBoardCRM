@@ -4,6 +4,9 @@ import dotenv from "dotenv";
 import cors from "cors";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import path from "path";
+import { fileURLToPath } from "url";
+
 import User from "./models/User.js"; 
 import mentorRoutes from "./routes/mentors.js";
 import menteesRoute from "./routes/mentees.js";
@@ -13,36 +16,27 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Middleware (CORS must come before routes)
+// ✅ Middleware
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
   credentials: true
 }));
 app.use(express.json());
 
-// --- Mentor Routes ---
+// --- Routes ---
 app.use("/api/mentors", mentorRoutes);
-app.use("/api/mentees", menteesRoute); // ✅ important!
+app.use("/api/mentees", menteesRoute);
 
-// --- Register route ---
 app.post("/api/auth/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
-
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
-    }
+    if (existingUser) return res.status(400).json({ message: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = new User({
-      name,
-      email,
-      password: hashedPassword,
-    });
-
+    const newUser = new User({ name, email, password: hashedPassword });
     await newUser.save();
+
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
     console.error(error);
@@ -50,26 +44,16 @@ app.post("/api/auth/register", async (req, res) => {
   }
 });
 
-// --- Login route ---
 app.post("/api/auth/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
+    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET || "mysecretkey",
-      { expiresIn: "1h" }
-    );
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "mysecretkey", { expiresIn: "1h" });
 
     res.json({
       message: "Login successful",
@@ -83,15 +67,25 @@ app.post("/api/auth/login", async (req, res) => {
 });
 
 // --- Test Route ---
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
   res.send("API is working 🚀");
 });
 
-// ✅ Connect to MongoDB
-mongoose
-  .connect(process.env.MONGO_URI)
+// ✅ Serve frontend in production
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../client/dist")));
+  app.get("*", (req, res) =>
+    res.sendFile(path.resolve(__dirname, "../client/dist", "index.html"))
+  );
+}
+
+// ✅ Connect DB & Start server
+mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log("MongoDB connected...");
-    app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch((err) => console.log(err));
