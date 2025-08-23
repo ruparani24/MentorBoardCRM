@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import MentorView from "../components/MentorView";
 
-const API = "http://localhost:5000/api/mentors";
+const API = `${import.meta.env.VITE_API_URL}/api/mentors`;
 
 const Mentors = () => {
   const [mentors, setMentors] = useState([]);

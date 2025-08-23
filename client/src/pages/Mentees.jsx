@@ -1,9 +1,9 @@
 // src/pages/Mentees.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import MentorView from "../components/MentorView"; // Can reuse same view component if generic
+import MenteeView from "../components/MenteeView"; // Can reuse same view component if generic
 
-const API = "http://localhost:5000/api/mentees";
+const API = `${import.meta.env.VITE_API_URL}/api/mentees`;
 
 const Mentees = () => {
   const [mentees, setMentees] = useState([]);
@@ -196,7 +196,7 @@ const Mentees = () => {
                 </tr>
               );
             })}
-            <MentorView
+            <MenteeView
               mentor={selectedMentee}
               onClose={() => setSelectedMentee(null)}
             />
