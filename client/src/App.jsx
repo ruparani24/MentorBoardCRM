@@ -4,12 +4,14 @@ import Dashboard from "./pages/Dashboard";
 import Mentors from "./pages/Mentors";
 import Mentees from "./pages/Mentees";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 function App() {
   return (
     <Routes>
       {/* Public route */}
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
 
       {/* Protected routes under Layout */}
       <Route path="/" element={<Layout />}>
