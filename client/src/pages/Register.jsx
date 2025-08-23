@@ -11,6 +11,7 @@ function Register() {
 
   const navigate = useNavigate();
   const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -18,7 +19,8 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${BASE_URL}/api/auth/login`, formData);
+      // ✅ Correct endpoint for registration
+      const res = await axios.post(`${BASE_URL}/api/auth/register`, formData);
       alert(res.data.message || "Registered successfully!");
       navigate("/login"); // redirect to login after signup
     } catch (error) {
