@@ -197,7 +197,7 @@ const Mentees = () => {
               );
             })}
             <MenteeView
-              mentor={selectedMentee}
+              mentee={selectedMentee}
               onClose={() => setSelectedMentee(null)}
             />
           </tbody>
